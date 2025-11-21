@@ -1,0 +1,106 @@
+@startuml Hybrid Cloud Leaderboard - C4 Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_TOP_DOWN()
+
+title Hybrid Cloud Leaderboard System - Container Diagram
+
+Person(operator, "Operator", "Configures tournaments")
+System_Ext(gaming_systems, "Gaming Systems", "On-premises")
+
+System_Boundary(onprem, "On-Premises") {
+    Container(kafka_onprem, "Kafka Cluster", "Apache Kafka", "Wager event stream")
+}
+
+System_Boundary(confluent, "Confluent Cloud") {
+    Container(kafka_connect, "Kafka Connect", "Confluent Connect", "On-prem → Cloud bridge")
+    Container(kafka_cloud, "Kafka Topics", "Confluent Kafka", "wager.events\ntournament.eligible.*")
+    Container(ksqldb, "ksqlDB", "Confluent ksqlDB", "Dynamic tournament\neligibility queries")
+}
+
+System_Boundary(azure, "Microsoft Azure") {
+    Container(k8s_processor, "Leaderboard Processors", "Kubernetes/C# .NET", "Position tracking\nPlayer ranking\nLeaderboard updates")
+    
+    ContainerDb(redis, "Leaderboard Cache", "Redis", "Real-time rankings\nSorted sets\n<10ms queries")
+    
+    ContainerDb(sql_server, "Leaderboard Archive", "SQL Server", "Historical snapshots\nTournament history\nOperator analytics")
+    
+    Container(front_door, "Azure Front Door", "CDN + LB", "Global distribution\nRegional failover\nSSL termination")
+    
+    Container(config_api, "Configuration API", "C# .NET REST API", "Tournament setup\nRule management")
+}
+
+System_Ext(player_ui, "Player UI", "Web/Mobile")
+System_Ext(operator_portal, "Operator Portal", "Management UI")
+
+Rel(gaming_systems, kafka_onprem, "Publish wager events", "Kafka")
+Rel(kafka_onprem, kafka_connect, "Replicate events", "Kafka Protocol")
+Rel(kafka_connect, kafka_cloud, "Write to cloud", "Kafka Protocol")
+
+Rel(operator, config_api, "Configure tournament", "HTTPS")
+Rel(config_api, ksqldb, "Deploy ksqlDB query", "REST API")
+
+Rel(kafka_cloud, ksqldb, "Event stream", "Kafka")
+Rel(ksqldb, kafka_cloud, "Filtered events", "Kafka")
+
+Rel(gaming, kafka_cluster, "Publishes best-effort wager events", "Kafka Producer")
+Rel(kafka_cluster, topic_wagers, "Writes to", "Kafka Protocol")
+Rel(topic_wagers, aggregator, "Consumes wagers", "Kafka Consumer")
+Rel(aggregator, redis, "Calculates positions, updates top 100", "Redis Sorted Sets")
+Rel(aggregator, sql, "Persists rankings", "SQL/TDS")
+Rel(aggregator, topic_position, "Publishes position change events (if rank changed)", "Kafka Producer")
+Rel(topic_position, websocket, "Consumes position changes", "Kafka Consumer")
+Rel(k8s_processor, redis, "Update rankings", "Redis Protocol")
+Rel(k8s_processor, sql_server, "Periodic snapshots", "SQL/JDBC")
+
+Rel(front_door, redis, "Query leaderboard", "Redis Protocol")
+Rel(player_ui, front_door, "View rankings", "HTTPS/WebSocket")
+Rel(operator_portal, sql_server, "Analytics queries", "SQL/JDBC")
+
+note right of ksqldb
+  **Dynamic Configuration:**
+  Operators route tournaments
+  via SQL queries (no code deploy)
+  
+  Example:
+  CREATE STREAM tournament_123 AS
+  SELECT playerId, score, newPosition
+  FROM position_change_events
+  WHERE tournamentId = 'weekend-slots'
+    AND gameCategory = 'slots'
+    AND timestamp BETWEEN
+      '2024-11-15' AND '2024-11-17';
+end note
+
+note right of k8s_processor
+  **Technology Stack:**
+  • C# .NET applications
+  • Derivco standard
+  
+  **Evolution Story:**
+  Initial: Azure Durable Functions
+  • Serverless, auto-scaling
+  • Problems: unpredictable scaling,
+    cold starts, high cost
+  
+  Migrated to: Kubernetes
+  • Predictable HPA scaling
+  • Pre-warming (no cold starts)
+  • 50% latency reduction
+  • 60% cost reduction
+end note
+
+note right of redis
+  **Performance:**
+  • Sorted Sets (ZADD, ZREVRANGE)
+  • <10ms P95 latency
+  • TTL = tournament duration + 24h
+  • Pre-warmed before tournament
+  
+  **Example:**
+  ZADD leaderboard:123 4500 player-456
+  ZREVRANGE leaderboard:123 0 9
+    (returns top 10)
+end note
+
+@enduml

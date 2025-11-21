@@ -1,0 +1,79 @@
+@startuml Loyalty_Sequence_Diagram
+!theme plain
+
+title Loyalty Points Calculation - Sequence Diagram
+
+actor Player
+participant "Gaming\nSystem" as Gaming
+database "Outbox\nTable" as Outbox
+participant "SQLCLR\nPublisher" as SQLCLR
+participant "Kafka\n(Confluent Cloud)" as Kafka
+participant "Wager Filter\nService" as Filter
+participant "Points Calculator\nService" as Calculator
+participant "Balance Aggregator\nService" as Aggregator
+database "Read Models\n(SQL Server)" as ReadDB
+database "Data Warehouse" as DW
+
+== Wager Processing ==
+Player -> Gaming: Place wager ($100)
+activate Gaming
+Gaming -> Gaming: BEGIN TRANSACTION
+Gaming -> Outbox: INSERT wager record\nINSERT outbox event
+Gaming -> Gaming: COMMIT TRANSACTION
+Gaming --> Player: Wager confirmed
+deactivate Gaming
+
+note right of Outbox
+  **Transactional Outbox Pattern**
+  Wager + Event inserted in
+  single transaction.
+  Guarantees event delivery.
+end note
+
+== Event Publishing (Asynchronous) ==
+SQLCLR -> Outbox: Poll for new events
+Outbox --> SQLCLR: Wager event
+SQLCLR -> Kafka: Publish to wagers-topic
+note right: Best-effort delivery
+
+== Loyalty Processing Pipeline ==
+Kafka -> Filter: Consume wagers-topic
+activate Filter
+Filter -> Filter: Apply eligibility rules
+Filter -> Kafka: Publish to calculations-topic
+deactivate Filter
+
+Kafka -> Calculator: Consume calculations-topic
+activate Calculator
+Calculator -> Calculator: Calculate loyalty points
+Calculator -> Kafka: Publish to balances-topic
+deactivate Calculator
+
+Kafka -> Aggregator: Consume balances-topic
+activate Aggregator
+Aggregator -> Aggregator: Aggregate player balance\n(stateful)
+Aggregator -> ReadDB: Materialize balance
+deactivate Aggregator
+
+== Data Archival ==
+Kafka -> DW: ETL (nightly batch)
+note right of DW
+  7+ year retention
+  for compliance
+end note
+
+== Balance Query ==
+Player -> ReadDB: Query balance (via API)
+ReadDB --> Player: Current balance
+
+note right of Player
+  **End-to-End Latency:**
+  Wager → Balance Update
+  < 1 second (70% reduction)
+  
+  **Eventual Consistency:**
+  Player sees updated balance
+  within seconds of wager
+end note
+
+@enduml

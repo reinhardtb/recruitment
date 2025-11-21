@@ -1,0 +1,48 @@
+@startuml Loyalty_Component_Diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Points Calculator Service - Component Diagram
+
+Container_Boundary(calculator, "Points Calculator Service") {
+    Component(consumer, "Kafka Consumer", "Kafka Streams API", "Consumes calculation events from Kafka")
+    Component(processor, "Points Processor", "Java", "Applies loyalty rules and calculates points")
+    Component(rules, "Rules Engine", "Java", "Evaluates eligibility and multipliers")
+    Component(state, "State Manager", "Kafka Streams State Store", "Manages processing state (RocksDB)")
+    Component(producer, "Kafka Producer", "Kafka Streams API", "Publishes balance events to Kafka")
+}
+
+ContainerDb_Ext(kafka, "Kafka Topics", "Confluent Cloud", "Event streaming platform")
+
+Rel(kafka, consumer, "Reads from calculations-topic", "Kafka Streams")
+Rel(consumer, processor, "Passes events", "In-process")
+Rel(processor, rules, "Evaluates rules", "In-process")
+Rel(rules, state, "Reads/writes state", "RocksDB")
+Rel(processor, producer, "Sends calculated points", "In-process")
+Rel(producer, kafka, "Writes to balances-topic", "Kafka Streams")
+
+note right of consumer
+  **Kafka Streams Consumer**
+  - Auto-commit disabled
+  - Exactly-once semantics
+  - Handles rebalancing
+end note
+
+note right of rules
+  **Rules Engine**
+  - Game type multipliers
+  - Player tier bonuses
+  - Promotional campaigns
+  - Configured via API
+end note
+
+note right of state
+  **State Store (RocksDB)**
+  - Changelog backed by Kafka
+  - Fault-tolerant
+  - Fast local lookups
+  - Automatic recovery
+end note
+
+@enduml

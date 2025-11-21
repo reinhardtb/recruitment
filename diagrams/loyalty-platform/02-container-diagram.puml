@@ -1,0 +1,36 @@
+@startuml Loyalty_Platform_Container
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Loyalty Platform - Container Diagram
+
+System_Boundary(onprem, "On-Premises Datacenters") {
+    System_Ext(gaming, "Gaming Systems", "Multiple SQL Server instances per operator")
+    ContainerDb(outbox, "Outbox Tables", "SQL Server", "Event staging (per gaming system)")
+    Container(sqlclr, "SQLCLR Publishers", "SQL CLR", "Polls outbox, publishes to Kafka")
+}
+
+System_Boundary(cloud, "Confluent Cloud / Azure") {
+    Container(kafka, "Kafka Topics", "Confluent Cloud", "wagers-topic\ncalculations-topic\nadjustments-topic\nbalances-topic")
+    
+    Container(wager_filter, "Wager Filter Service", "Java/Kafka Streams", "Filters eligible wagers")
+    Container(points_calc, "Points Calculator", "Java/Kafka Streams", "Calculates loyalty points")
+    Container(balance_agg, "Balance Aggregator", "Java/Kafka Streams", "Aggregates player balances")
+    
+    Container(api, "Loyalty API", "C#/.NET", "Balance queries and operations")
+    ContainerDb(read_db, "Read Models", "Azure SQL Server", "Player balances (fast queries)")
+}
+
+Rel(gaming, outbox, "Inserts wager + event", "SQL Transaction")
+Rel(sqlclr, outbox, "Polls for events", "SQL")
+Rel(sqlclr, kafka, "Publishes events", "Kafka Protocol")
+
+Rel(kafka, wager_filter, "Consumes wagers-topic", "Kafka Streams")
+Rel(wager_filter, points_calc, "Publishes to calculations-topic", "Kafka Streams")
+Rel(points_calc, balance_agg, "Publishes to balances-topic", "Kafka Streams")
+Rel(balance_agg, read_db, "Materializes balances", "JDBC")
+
+Rel(api, read_db, "Queries", "JDBC")
+
+@enduml

@@ -1,0 +1,44 @@
+@startuml Hybrid Cloud Leaderboard - C4 Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Hybrid Cloud Leaderboard System - System Context Diagram
+
+Person(player, "Player", "Participates in tournaments,\nviews real-time leaderboard")
+Person(operator, "Casino Operator", "Configures tournaments\nvia self-service portal")
+Person(marketing, "Marketing Team", "Launches promotional\ntournaments")
+
+System(leaderboard_platform, "Leaderboard Platform", "Real-time tournament leaderboard system\n10K+ concurrent players, <1s latency")
+
+System_Ext(gaming_systems, "Gaming Systems", "Core wagering platform (on-premises)")
+System_Ext(operator_portal, "Operator Portal", "Tournament configuration and analytics")
+System_Ext(player_ui, "Player UI", "Mobile app and web interface")
+System_Ext(prize_system, "Prize Distribution System", "Manages tournament prizes")
+
+Rel(player, gaming_systems, "Places wagers", "HTTPS")
+Rel(gaming_systems, leaderboard_platform, "Publishes wager events", "Kafka")
+
+Rel(leaderboard_platform, player_ui, "Provides real-time rankings", "WebSocket/REST")
+Rel(leaderboard_platform, operator_portal, "Provides analytics", "REST API")
+Rel(leaderboard_platform, prize_system, "Tournament results", "REST API")
+
+Rel(player, player_ui, "Views leaderboard", "HTTPS")
+Rel(operator, operator_portal, "Configures tournaments", "HTTPS")
+Rel(marketing, operator_portal, "Launches campaigns", "HTTPS")
+
+note right of leaderboard_platform
+  **Key Characteristics:**
+  • 10,000+ concurrent players
+  • <1 second update latency
+  • 99.99% availability
+  • Dynamic tournament rules (ksqlDB)
+  • Multi-operator (isolated data)
+  • Global distribution
+  
+  **Evolution:**
+  Azure Durable Functions → Kubernetes
+  (50% latency reduction, 60% cost savings)
+end note
+
+@enduml

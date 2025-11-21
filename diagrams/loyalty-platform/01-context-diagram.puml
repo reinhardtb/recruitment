@@ -1,0 +1,41 @@
+@startuml Loyalty Extraction Platform - C4 Context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Loyalty Extraction Platform - System Context Diagram
+
+Person(player, "Player", "Casino player earning loyalty points")
+Person(operator, "Casino Operator", "Configures loyalty rules and manages redemptions")
+Person(compliance, "Compliance Team", "Audits loyalty transactions")
+
+System(loyalty_platform, "Loyalty Extraction Platform", "Event-driven platform for loyalty points calculation\n50B events/month (~69M/hour)")
+
+System_Ext(monolith, "Gaming Monolith", "Core wagering system (on-premises)")
+System_Ext(operator_portal, "Operator Portal", "Tournament and loyalty management")
+System_Ext(player_app, "Player Mobile App", "View points balance, redeem rewards")
+System_Ext(compliance_system, "Compliance System", "Regulatory reporting and audits")
+
+Rel(player, monolith, "Places wagers", "HTTPS")
+Rel(monolith, loyalty_platform, "Publishes wager events", "Kafka (best-effort)")
+
+Rel(loyalty_platform, operator_portal, "Provides points data", "REST API")
+Rel(loyalty_platform, player_app, "Provides balance", "REST API")
+Rel(loyalty_platform, compliance_system, "Exports audit logs", "Batch/API")
+
+Rel(operator, operator_portal, "Configures loyalty rules", "HTTPS")
+Rel(player, player_app, "Views points, redeems", "HTTPS")
+Rel(compliance, compliance_system, "Runs audits", "HTTPS")
+
+note right of loyalty_platform
+  **Key Characteristics:**
+  • 50 billion events/month
+  • ~69M events/hour average
+  • ~139M events/hour peak
+  • <2s processing latency
+  • 99.9%+ availability
+  • Multi-region (Malta, Canada,
+    Isle of Man, Europe, Asia, Oceania)
+end note
+
+@enduml

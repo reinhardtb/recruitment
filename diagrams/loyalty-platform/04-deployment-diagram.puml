@@ -1,0 +1,146 @@
+@startuml Loyalty Platform - Deployment Architecture
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Loyalty Extraction Platform - Deployment Architecture
+
+Deployment_Node(malta, "Malta Data Center", "On-Premises") {
+    Deployment_Node(kafka_cluster_malta, "Kafka Cluster", "5-node cluster") {
+        Container(kafka_malta_1, "Kafka Broker 1", "Apache Kafka 3.x")
+        Container(kafka_malta_2, "Kafka Broker 2", "Apache Kafka 3.x")
+        Container(kafka_malta_3, "Kafka Broker 3", "Apache Kafka 3.x")
+        Container(kafka_malta_4, "Kafka Broker 4", "Apache Kafka 3.x")
+        Container(kafka_malta_5, "Kafka Broker 5", "Apache Kafka 3.x")
+    }
+    
+    Deployment_Node(monolith_server, "Application Server", "Windows Server") {
+        Container(monolith_malta, "Gaming Monolith", ".NET/SQL Server")
+        ContainerDb(sql_server_malta, "SQL Server", "Monolith DB + Outbox")
+    }
+}
+
+Deployment_Node(canada, "Canada Data Center", "On-Premises") {
+    Deployment_Node(kafka_cluster_ca, "Kafka Cluster", "5-node cluster") {
+        Container(kafka_ca_1, "Kafka Broker 1", "Apache Kafka 3.x")
+        Container(kafka_ca_2, "Kafka Broker 2", "Apache Kafka 3.x")
+        Container(kafka_ca_3, "Kafka Broker 3", "Apache Kafka 3.x")
+        Container(kafka_ca_4, "Kafka Broker 4", "Apache Kafka 3.x")
+        Container(kafka_ca_5, "Kafka Broker 5", "Apache Kafka 3.x")
+    }
+}
+
+Deployment_Node(confluent, "Confluent Cloud", "SaaS") {
+    Deployment_Node(connect_service, "Kafka Connect", "Managed Service") {
+        Container(connect_malta, "Connect: Malta", "Kafka Connect")
+        Container(connect_ca, "Connect: Canada", "Kafka Connect")
+    }
+    
+    Deployment_Node(kafka_cloud_cluster, "Kafka Cluster", "Multi-region") {
+        Container(kafka_cloud_1, "Kafka Broker 1", "Confluent Kafka")
+        Container(kafka_cloud_2, "Kafka Broker 2", "Confluent Kafka")
+        Container(kafka_cloud_3, "Kafka Broker 3", "Confluent Kafka")
+    }
+}
+
+Deployment_Node(azure, "Microsoft Azure", "Cloud") {
+    Deployment_Node(aks, "Azure Kubernetes Service", "West Europe") {
+        Deployment_Node(streams_pods, "Kafka Streams Pods", "Kubernetes Deployments") {
+            Container(streams_1, "Eligibility Filter", "Pod 1-3")
+            Container(streams_2, "Points Calculator", "Pod 1-3")
+            Container(streams_3, "Aggregator", "Pod 1-3")
+        }
+    }
+    
+    Deployment_Node(sql_region, "SQL Database", "West Europe") {
+        Deployment_Node(sql_primary, "Primary", "Azure SQL") {
+            ContainerDb(sql_master, "Points Balance DB", "Write Master")
+        }
+        Deployment_Node(sql_replica, "Read Replicas", "Azure SQL") {
+            ContainerDb(sql_read_1, "Replica 1", "Read-only")
+            ContainerDb(sql_read_2, "Replica 2", "Read-only")
+        }
+    }
+    
+    Deployment_Node(cosmos, "Cosmos DB", "West Europe") {
+        ContainerDb(config_db, "Configuration Store", "Multi-region write")
+    }
+    
+    Deployment_Node(monitoring, "Monitoring", "Azure Monitor") {
+        Container(app_insights, "Application Insights", "Distributed tracing")
+        Container(log_analytics, "Log Analytics", "Logs & metrics")
+    }
+}
+
+Rel(monolith_malta, sql_server_malta, "Write wager + outbox", "JDBC")
+Rel(sql_server_malta, kafka_malta_1, "SQLCLR: Publish events", "Kafka Protocol")
+Rel(kafka_malta_1, connect_malta, "Replicate", "Kafka Connect")
+Rel(kafka_ca_1, connect_ca, "Replicate", "Kafka Connect")
+
+Rel(connect_malta, kafka_cloud_1, "Write events", "Kafka Protocol")
+Rel(connect_ca, kafka_cloud_1, "Write events", "Kafka Protocol")
+
+Rel(kafka_cloud_1, streams_1, "Event stream", "Kafka Streams")
+Rel(streams_1, streams_2, "Via Kafka topic", "Kafka Streams")
+Rel(streams_2, streams_3, "Via Kafka topic", "Kafka Streams")
+
+Rel(streams_1, config_db, "Read config", "Cosmos SDK")
+Rel(streams_2, config_db, "Read config", "Cosmos SDK")
+
+Rel(streams_3, sql_master, "Write balances", "JDBC")
+
+Rel(sql_master, sql_read_1, "Replication", "SQL Replication")
+Rel(sql_master, sql_read_2, "Replication", "SQL Replication")
+
+Rel(streams_1, app_insights, "Telemetry", "HTTPS")
+Rel(streams_2, app_insights, "Telemetry", "HTTPS")
+Rel(streams_3, app_insights, "Telemetry", "HTTPS")
+
+note right of sql_server_malta
+  **Outbox Pattern:**
+  • Wager + event in same transaction
+  • SQLCLR stored procedure
+  • Asynchronously publishes to Kafka
+  • Transactional consistency
+  • At-least-once delivery
+end note
+
+note right of kafka_cluster_malta
+  **On-Prem Kafka:**
+  • 5-node cluster per region
+  • Replication factor: 3
+  • Retention: 7 days max
+  • Partitions: 50 (parallelism)
+  • Regions: Malta, Canada,
+    Isle of Man, Europe, Asia, Oceania
+end note
+
+note right of kafka_cloud_cluster
+  **Confluent Cloud:**
+  • Managed Kafka
+  • Multi-AZ deployment
+  • Auto-scaling
+  • 7 day retention (event stream)
+  • 100+ partitions
+  • Materialized views for queries
+end note
+
+note right of streams_pods
+  **Kafka Streams (Java):**
+  • 3 replicas per processor
+  • HPA: CPU 70% threshold
+  • State stores: RocksDB
+  • Exactly-once semantics
+  • JVM containers
+end note
+
+note right of sql_primary
+  **Azure SQL:**
+  • Write master (West Europe)
+  • 2 read replicas
+  • Point-in-time restore
+  • 7+ years retention
+  • Geo-replication ready
+end note
+
+@enduml

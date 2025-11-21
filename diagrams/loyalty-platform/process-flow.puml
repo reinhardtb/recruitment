@@ -1,0 +1,37 @@
+@startuml Loyalty_Business_Process
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Loyalty Points - Business Process
+
+start
+:Player places wager\n(e.g., $100 bet);
+
+:System captures\nwager details;
+
+if (Eligible for loyalty?) then (yes)
+  :Calculate points earned\n(e.g., 100 points for $100);
+  
+  :Update player's\nloyalty balance;
+  
+  :Player sees updated\nbalance immediately;
+  
+  :Record transaction\nfor compliance;
+else (no)
+  :No points awarded;
+  note right
+    Examples of ineligible:
+    - Free spins
+    - Promotional bets
+    - Certain game types
+  end note
+  stop
+endif
+
+:Player can redeem points\nfor rewards;
+
+stop
+
+@enduml

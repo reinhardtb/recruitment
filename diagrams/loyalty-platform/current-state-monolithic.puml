@@ -1,0 +1,41 @@
+@startuml Current_State_Monolithic
+!theme plain
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 12
+
+title Current State - Monolithic Loyalty Processing
+
+actor Player
+participant "Gaming Application" as App
+database "SQL Server\n(Gaming + Loyalty)" as DB
+
+Player -> App: Place wager ($100)
+activate App
+
+App -> DB: BEGIN TRANSACTION
+activate DB
+
+DB -> DB: Execute stored procedure:\n1. Record wager\n2. Update game state\n3. Calculate loyalty points\n4. Update loyalty balance\n5. Generate player notifications
+
+alt Transaction Successful
+    DB --> App: COMMIT\n(3-5 seconds)
+    deactivate DB
+    App --> Player: Wager confirmed\n+ Loyalty points updated
+else Transaction Failed
+    DB --> App: ROLLBACK
+    App --> Player: Error - try again
+end
+
+deactivate App
+
+note right of DB
+  **Bottleneck**:
+  - All logic in stored procedures
+  - Synchronous processing
+  - Single database transaction
+  - 3-5 second latency
+  - Vertical scaling only
+end note
+
+@enduml

@@ -1,0 +1,73 @@
+@startuml Leaderboard Update - Event Flow
+!theme plain
+
+title Tournament Leaderboard Update - Wager to Position Change Event Flow
+
+actor Player
+participant "Gaming\nMonolith" as Monolith
+participant "Outbox\nTable" as Outbox
+participant "SQLCLR\nPublisher" as SQLCLR
+participant "Kafka\n(Confluent Cloud)" as Kafka
+participant "Leaderboard\nAggregator" as LeaderboardAgg
+participant "Redis\nCache" as Redis
+participant "SQL Server\n(Rankings)" as SQLServer
+participant "WebSocket\nService" as WebSocket
+participant "Web\nClient" as WebClient
+
+== Wager Event Publishing (Best-Effort) ==
+
+Player -> Monolith: Place Wager
+Monolith -> Outbox: Insert Wager Event\n(Best-Effort)
+note right: Fire-and-forget,\nno position calculation
+
+SQLCLR -> Outbox: Poll Events
+SQLCLR -> Kafka: Publish Wager Event\n(Best-Effort)
+Kafka -> LeaderboardAgg: Consume Wager Event
+
+== Position Calculation & Change Detection ==
+
+LeaderboardAgg -> LeaderboardAgg: Calculate Score\n& Position
+LeaderboardAgg -> LeaderboardAgg: Detect Rank\nChange
+LeaderboardAgg -> Redis: Update Top 100
+LeaderboardAgg -> SQLServer: Persist Rankings
+LeaderboardAgg -> Kafka: Publish Position\nChange Event\n(If Rank Changed)
+note right: Only publishes if\nplayer rank changed
+
+== Real-Time Client Updates ==
+
+Kafka -> WebSocket: Consume Position\nChange Event
+WebSocket -> WebClient: Push Leaderboard\nUpdate (SignalR)\n(Only Rank Changes)
+KafkaCloud -> KSQL: Event arrives
+activate KSQL
+KSQL -> KSQL: Apply tournament_123 query:\n• gameCategory = 'slots' ✓\n• wagerAmount >= $10 ✓\n• timestamp in range ✓
+
+alt Event matches tournament
+    KSQL -> KafkaCloud: Publish to\ntournament.eligible.123 topic
+    note right: Event eligible for\ntournament 123
+else Event doesn't match
+    KSQL -> KSQL: Filter out\n(doesn't match criteria)
+    note right: Event ignored\nfor this tournament
+end
+WebSocket -> WebClient: Push Leaderboard\nUpdate (SignalR)\n(Only Rank Changes)
+
+== Player Queries Leaderboard ==
+
+Player -> WebClient: View Leaderboard
+WebClient -> LeaderboardAgg: GET /leaderboard/{tournamentId}
+LeaderboardAgg -> Redis: ZREVRANGE leaderboard:{tournamentId}\n0 99 WITHSCORES
+Redis --> LeaderboardAgg: Top 100 Rankings
+LeaderboardAgg --> WebClient: Leaderboard JSON
+WebClient --> Player: Display Rankings
+
+note right of Player
+  **Query Performance:**
+  <5ms P99 latency (Redis)
+  
+  **Update Frequency:**
+  Real-time (<500ms)
+  
+  Player sees position changes
+  pushed via WebSocket
+end note
+
+@enduml

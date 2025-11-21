@@ -1,0 +1,56 @@
+# .gitignore
+
+# MCP Configuration with secrets
+.mcp-config.json
+
+# Environment files
+.env
+.env.local
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor
+.vscode/*
+!.vscode/settings.json.example
+!.vscode/tasks.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.temp
+~$*
+
+# Diagram source backups
+*.bak
+*.drawio.bkp
+
+# Node modules (if using any JS tools)
+node_modules/
+
+# Python (if using Python tools)
+__pycache__/
+*.py[cod]
+*.venv
+venv/
+
+# Credentials and secrets
+**/secrets.json
+**/credentials.json
+*.pem
+*.key
+
+# Build outputs
+dist/
+build/
+output/
+
+# Logs
+*.log
+logs/

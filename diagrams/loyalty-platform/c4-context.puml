@@ -1,0 +1,31 @@
+@startuml C4_Context_Loyalty_Platform
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+LAYOUT_WITH_LEGEND()
+
+title System Context Diagram - Loyalty Points Platform
+
+Person(player, "Player", "Casino/gaming customer earning loyalty points")
+Person(support, "Customer Support", "Resolves player disputes and queries")
+Person(analyst, "Business Analyst", "Analyzes player behavior and loyalty trends")
+Person(marketing, "Marketing Team", "Configures loyalty rules and campaigns")
+
+System(loyalty, "Loyalty Platform", "Calculates and manages player loyalty points in real-time")
+
+System_Ext(gaming, "Gaming Systems", "Multiple gaming platforms per operator (legacy SQL Server)")
+System_Ext(crm, "CRM System", "Customer relationship management")
+System_Ext(marketing_platform, "Marketing Platform", "Campaign management and player communications")
+System_Ext(bi, "Business Intelligence", "Analytics and reporting")
+
+Rel(gaming, loyalty, "Publishes wager events", "Event Stream")
+Rel(loyalty, gaming, "Provides balance updates", "Event Stream")
+Rel(player, gaming, "Places wagers", "HTTPS")
+Rel(player, loyalty, "Views loyalty balance", "HTTPS")
+Rel(support, loyalty, "Queries player balances, resolves disputes", "HTTPS")
+Rel(marketing, loyalty, "Configures loyalty rules and campaigns", "HTTPS")
+Rel(loyalty, crm, "Sends player loyalty data", "Event Stream")
+Rel(loyalty, marketing_platform, "Provides segmentation data", "Event Stream")
+Rel(analyst, bi, "Analyzes loyalty trends", "SQL")
+Rel(loyalty, bi, "Streams loyalty events", "Event Stream")
+
+@enduml

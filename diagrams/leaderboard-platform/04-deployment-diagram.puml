@@ -1,0 +1,151 @@
+@startuml Leaderboard Platform - Deployment
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Deployment.puml
+
+LAYOUT_WITH_LEGEND()
+
+title Hybrid Cloud Leaderboard System - Deployment Architecture
+
+Deployment_Node(onprem, "On-Premises Data Centers", "Multiple Regions") {
+    Deployment_Node(kafka_onprem, "Kafka Cluster", "3-node cluster") {
+        Container(kafka_1, "Kafka Broker 1", "Apache Kafka")
+        Container(kafka_2, "Kafka Broker 2", "Apache Kafka")
+        Container(kafka_3, "Kafka Broker 3", "Apache Kafka")
+    }
+}
+
+Deployment_Node(confluent, "Confluent Cloud", "SaaS Platform") {
+    Deployment_Node(connect, "Kafka Connect", "Managed Service") {
+        Container(connect_instance, "Connect Workers", "Kafka Connect")
+    }
+    
+    Deployment_Node(kafka_cluster, "Kafka Cluster", "Multi-region") {
+        Container(cloud_broker_1, "Kafka Broker 1", "Confluent Kafka")
+        Container(cloud_broker_2, "Kafka Broker 2", "Confluent Kafka")
+        Container(cloud_broker_3, "Kafka Broker 3", "Confluent Kafka")
+    }
+    
+    Deployment_Node(ksqldb_cluster, "ksqlDB Cluster", "Managed ksqlDB") {
+        Container(ksqldb_1, "ksqlDB Server 1", "Confluent ksqlDB")
+        Container(ksqldb_2, "ksqlDB Server 2", "Confluent ksqlDB")
+    }
+}
+
+Deployment_Node(azure, "Microsoft Azure", "Cloud Platform") {
+    Deployment_Node(aks, "Azure Kubernetes Service", "West Europe") {
+        Deployment_Node(processors, "Processor Pods", "Deployments") {
+            Container(proc_1, "Score Aggregator", "Pod 1-10\nGo/Kafka Consumer")
+            Container(proc_2, "Ranker", "Pod 1-5\nGo/Redis Client")
+        }
+    }
+    
+    Deployment_Node(redis_cluster, "Azure Cache for Redis", "Premium Tier") {
+        Deployment_Node(redis_primary, "Primary", "Redis Cluster Mode") {
+            Container(redis_master, "Redis Master", "Write node")
+        }
+        Deployment_Node(redis_replicas, "Replicas", "Read replicas") {
+            Container(redis_replica_1, "Replica 1", "Read node")
+            Container(redis_replica_2, "Replica 2", "Read node")
+        }
+    }
+    
+    Deployment_Node(sql_db, "Azure SQL Database", "Business Critical tier") {
+        ContainerDb(sql_server, "SQL Server", "Leaderboard snapshots,\ntournament history")
+    }
+    
+    Deployment_Node(cdn, "Azure Front Door", "Global CDN") {
+        Container(front_door, "Front Door Instance", "WAF + LB + CDN")
+    }
+    
+    Deployment_Node(monitor, "Azure Monitor", "Observability") {
+        Container(app_insights, "Application Insights", "Distributed tracing")
+        Container(log_analytics, "Log Analytics", "Logs & metrics")
+        Container(grafana, "Grafana", "Dashboards")
+    }
+}
+
+Deployment_Node(edge, "Global Edge Locations", "Azure CDN PoPs") {
+    Container(edge_us, "US East", "CDN PoP")
+    Container(edge_eu, "EU West", "CDN PoP")
+    Container(edge_asia, "Asia Pacific", "CDN PoP")
+}
+
+Rel(kafka_1, connect_instance, "Replicate", "Kafka Protocol")
+Rel(connect_instance, cloud_broker_1, "Write events", "Kafka Protocol")
+
+Rel(cloud_broker_1, ksqldb_1, "Event streams", "Kafka Protocol")
+Rel(ksqldb_1, cloud_broker_1, "Filtered streams", "Kafka Protocol")
+
+Rel(cloud_broker_1, proc_1, "Consume events", "Kafka Consumer")
+Rel(proc_1, redis_master, "Update scores", "Redis Protocol")
+Rel(proc_1, table_storage, "Snapshots", "Azure SDK")
+
+Rel(redis_master, redis_replica_1, "Replication", "Redis Protocol")
+Rel(redis_master, redis_replica_2, "Replication", "Redis Protocol")
+
+Rel(front_door, redis_replica_1, "Query rankings", "Redis Protocol")
+Rel(front_door, redis_replica_2, "Query rankings", "Redis Protocol")
+
+Rel(front_door, edge_us, "CDN", "HTTPS")
+Rel(front_door, edge_eu, "CDN", "HTTPS")
+Rel(front_door, edge_asia, "CDN", "HTTPS")
+
+Rel(proc_1, app_insights, "Telemetry", "HTTPS")
+Rel(proc_1, log_analytics, "Logs", "HTTPS")
+
+note right of aks
+  **Kubernetes Scaling:**
+  
+  HPA (Horizontal Pod Autoscaler):
+  • CPU threshold: 70%
+  • Min replicas: 3
+  • Max replicas: 20
+  • Scale-up: 30s
+  • Scale-down: 5m
+  
+  **Pre-Warming:**
+  CronJob scales to max
+  30 min before tournament
+end note
+
+note right of redis_cluster
+  **Redis Configuration:**
+  • Premium tier (clustering)
+  • 6 shards
+  • 12 nodes (6 master + 6 replica)
+  • Persistence: RDB snapshots
+  • Eviction: allkeys-lru
+  • Max memory: 26 GB
+  
+  **Performance:**
+  • <10ms P95 latency
+  • 500K+ ops/sec capacity
+end note
+
+note right of front_door
+  **Global Distribution:**
+  • 100+ edge locations
+  • Geo-routing (nearest PoP)
+  • SSL termination at edge
+  • WAF rules (DDoS protection)
+  • Session affinity (sticky)
+  
+  **Availability:**
+  • 99.99% SLA
+  • Auto-failover (region down)
+  • Health probes (30s interval)
+end note
+
+note right of ksqldb_cluster
+  **ksqlDB Queries:**
+  • Dynamic tournament filters
+  • Operator-configurable
+  • No code deployments
+  • Real-time processing
+  
+  Example:
+  50+ concurrent tournaments
+  Each with unique eligibility
+  rules defined in SQL
+end note
+
+@enduml

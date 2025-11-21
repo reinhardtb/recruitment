@@ -1,0 +1,168 @@
+Create a PowerPoint presentation (16:9, professional blue theme #0066cc) from this content. Each "---" separator = new slide.
+
+SLIDE 1 (Title - centered):
+Legacy Modernization: Extracting Loyalty Platform
+Event-Driven Architecture in Regulated Environment
+Presented by: [Your Name]
+Context: iGaming Fintech
+
+SLIDE 2 (Problem):
+Title: The Business Challenge
+Situation:
+- Legacy monolithic systems handling core transactions
+- Loyalty processing tightly coupled with gaming logic
+- Slow user experience (3-5 second delays)
+- Expensive to scale, difficult to evolve
+
+Constraints:
+- Cannot refactor legacy (business risk, regulatory compliance)
+- Must maintain transactional integrity
+- Gaming regulations require full audit trail
+- Multi-datacenter deployments
+
+SLIDE 3 (Architecture Options):
+Title: Solution Alternatives Considered
+
+Option 1: Big Bang Rewrite
+✅ Clean slate, modern stack
+❌ High risk, business disruption, regulatory re-certification
+❌ 12-18 month timeline
+
+Option 2: Database Replication
+✅ Low initial effort
+❌ Tight coupling remains, data consistency issues
+❌ Doesn't solve scaling problem
+
+Option 3: Event-Driven Extraction (Strangler Fig)
+✅ Incremental migration, low risk
+✅ Decouples loyalty from core systems
+❌ Complexity: managing hybrid architecture
+✅ Selected approach
+
+SLIDE 4 (Solution Architecture):
+Title: Event-Driven Extraction Pattern
+
+High-Level Architecture:
+Legacy Systems → Event Bridge → Cloud Platform → Modern Services
+
+Key Decisions:
+1. Hybrid Cloud: Keep legacy on-prem, new services in cloud
+2. Event Sourcing: Transactional outbox for guaranteed delivery
+3. Managed Services: Reduce operational burden
+4. Compliance-First: Audit trail, encryption, data residency
+
+SLIDE 5 (Critical Trade-offs):
+Title: Key Architectural Trade-offs
+
+Build vs. Buy Streaming Platform:
+Decision: Managed Kafka (Confluent Cloud)
+✅ 99.99% SLA, auto-scaling, reduced ops
+❌ Vendor dependency, ongoing cost
+Alternative: Self-managed Kafka (higher ops burden, lower SLA)
+
+Language Choice:
+Decision: Java for stream processing (team was .NET)
+✅ Best-in-class streaming libraries, community support
+❌ Team upskilling required (2 months)
+Alternative: .NET with custom state management (6+ months dev time)
+
+Data Retention:
+Decision: 7-day hot storage (Kafka), long-term cold storage (warehouse)
+✅ Cost-optimized, meets compliance
+❌ Complexity of dual-storage strategy
+
+SLIDE 6 (Organizational Impact):
+Title: Communicating Architecture Decisions
+
+To Executive Leadership:
+- "Strangler fig reduces risk—incremental migration with rollback capability"
+- "Managed services reduce ops overhead by 60%"
+- "Faster loyalty updates improve player retention"
+
+To Engineering Teams:
+- "Learn industry-standard patterns used at scale (Netflix, Uber)"
+- "Exactly-once processing—no manual reconciliation"
+- "Event-driven enables future features with minimal cost"
+
+To Compliance/Legal:
+- "Immutable audit log for regulatory requirements"
+- "Data residency controls (EU data stays in EU)"
+- "Cryptographic guarantees for dispute resolution"
+
+SLIDE 7 (Security & Compliance):
+Title: Compliance Architecture
+
+Gaming Regulations:
+- 7+ year data retention (immutable storage)
+- Complete audit trail for disputes
+- Regional data residency
+
+Financial Compliance:
+- PCI-DSS: No payment data in loyalty system
+- GDPR: Data minimization, right to erasure
+- Encryption: At-rest and in-transit
+
+Architecture Approach:
+- Event log = single source of truth
+- Separation of concerns (payment vs. loyalty)
+- Automated compliance reporting
+
+SLIDE 8 (Results & Impact):
+Title: Business Outcomes
+
+Performance:
+- 70% reduction in latency (3-5s → <1s)
+- Improved user experience, reduced support tickets
+
+Scalability:
+- Handles traffic spikes without manual intervention
+- Cloud auto-scaling during peak periods
+
+Risk Reduction:
+- Legacy systems unchanged (no regulatory re-certification)
+- Incremental rollout with rollback capability
+
+Operational Efficiency:
+- Reduced manual operations (managed services)
+- Faster feature development (decoupled architecture)
+
+SLIDE 9 (Lessons Learned):
+Title: Architectural Insights
+
+What Worked:
+✅ Incremental migration (strangler fig) reduced risk significantly
+✅ Investing in team skills (upskilling) paid off
+✅ Managed services > DIY for non-differentiating infrastructure
+✅ Event-driven architecture enables future innovation
+
+What to Improve:
+⚠️ Observability should be day-one, not added later
+⚠️ Schema governance critical from start (avoid breaking changes)
+⚠️ Cross-team communication overhead in hybrid architecture
+
+Key Principle:
+Architecture isn't about technology—it's about managing trade-offs to achieve business outcomes within constraints.
+
+SLIDE 10 (Applicability):
+Title: Relevant Patterns for Booking.com
+
+Similar Challenges:
+- Loyalty programs at scale (millions of users)
+- Legacy system modernization (incremental, low-risk)
+- Multi-region compliance (GDPR, data residency)
+- Real-time processing (pricing, fraud detection)
+
+Transferable Principles:
+- Event-driven decoupling for evolution
+- Strangler fig for legacy modernization
+- Compliance-as-architecture
+- Build vs. buy trade-offs
+- Organizational change management
+
+SLIDE 11 (Closing - centered):
+"Architecture is about achieving business outcomes within constraints—technical, organizational, and regulatory."
+
+"This project demonstrated: incremental migration, managing trade-offs, and aligning technical decisions with business value."
+
+Questions?
+[Your Name]

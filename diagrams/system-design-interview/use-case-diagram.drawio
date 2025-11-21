@@ -1,18 +1,89 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36" version="29.1.0">
-  <diagram name="Page-1" id="LaPARPAuU6SFsYJGou9E">
-    <mxGraphModel dx="1426" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <diagram name="Use Case Diagram" id="LaPARPAuU6SFsYJGou9E">
+    <mxGraphModel dx="1426" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="KuGVpcBF32ulcmpSax_u-1" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Actor" vertex="1">
-          <mxGeometry height="60" width="30" x="40" y="80" as="geometry" />
+        
+        <!-- System Boundary -->
+        <mxCell id="system-boundary" value="[System Name]" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;verticalAlign=top;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry x="250" y="100" width="600" height="550" as="geometry" />
         </mxCell>
-        <mxCell id="KuGVpcBF32ulcmpSax_u-2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;verticalAlign=top;" value="System Bounds" vertex="1">
-          <mxGeometry height="430" width="360" x="120" y="40" as="geometry" />
+        
+        <!-- Primary Actor -->
+        <mxCell id="actor-user" value="End User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="100" y="250" width="50" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="KuGVpcBF32ulcmpSax_u-3" parent="1" style="ellipse;whiteSpace=wrap;html=1;" value="" vertex="1">
-          <mxGeometry height="50" width="120" x="180" y="90" as="geometry" />
+        
+        <!-- Admin Actor -->
+        <mxCell id="actor-admin" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="100" y="450" width="50" height="100" as="geometry" />
         </mxCell>
+        
+        <!-- External System -->
+        <mxCell id="actor-external" value="External&#xa;System" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#fff2cc;strokeColor=#d6b656;" vertex="1" parent="1">
+          <mxGeometry x="950" y="340" width="50" height="100" as="geometry" />
+        </mxCell>
+        
+        <!-- Use Cases - User -->
+        <mxCell id="uc-1" value="Use Case 1&#xa;[Primary Action]" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="160" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="uc-2" value="Use Case 2&#xa;[Secondary Action]" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="270" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="uc-3" value="Use Case 3&#xa;[View/Read]" style="ellipse;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="350" y="380" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Use Cases - Admin -->
+        <mxCell id="uc-admin-1" value="Admin Use Case&#xa;[Configuration]" style="ellipse;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="480" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Use Cases - System Integration -->
+        <mxCell id="uc-integration" value="External Integration&#xa;[API/Service]" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="620" y="270" width="140" height="70" as="geometry" />
+        </mxCell>
+        
+        <!-- Relationships -->
+        <mxCell id="rel-user-uc1" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-user" target="uc-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="400" as="sourcePoint" />
+            <mxPoint x="450" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel-user-uc2" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-user" target="uc-2">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="400" as="sourcePoint" />
+            <mxPoint x="450" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel-user-uc3" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-user" target="uc-3">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="400" as="sourcePoint" />
+            <mxPoint x="450" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel-admin-ucadmin" value="" style="endArrow=none;html=1;rounded=0;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="actor-admin" target="uc-admin-1">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="400" as="sourcePoint" />
+            <mxPoint x="450" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
+        <mxCell id="rel-ext-integration" value="&amp;lt;&amp;lt;include&amp;gt;&amp;gt;" style="endArrow=none;html=1;rounded=0;exitX=0;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;fontSize=10;" edge="1" parent="1" source="actor-external" target="uc-integration">
+          <mxGeometry width="50" height="50" relative="1" as="geometry">
+            <mxPoint x="400" y="400" as="sourcePoint" />
+            <mxPoint x="450" y="350" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        
       </root>
     </mxGraphModel>
   </diagram>

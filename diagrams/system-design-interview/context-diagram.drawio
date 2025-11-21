@@ -1,9 +1,63 @@
 <mxfile host="app.diagrams.net" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/142.0.0.0 Safari/537.36" version="29.1.0">
-  <diagram name="Page-1" id="T35_8dEV6Par88W0vmJ_">
-    <mxGraphModel dx="1426" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+  <diagram name="Context Diagram" id="T35_8dEV6Par88W0vmJ_">
+    <mxGraphModel dx="1426" dy="743" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
+        
+        <!-- Central System -->
+        <mxCell id="system-1" value="[System Name]&#xa;&#xa;[Brief description]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;fontSize=14;fontStyle=1;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="470" y="320" width="200" height="120" as="geometry" />
+        </mxCell>
+        
+        <!-- External Actors -->
+        <mxCell id="user-1" value="End User" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="140" y="200" width="40" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="admin-1" value="Admin" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#f8cecc;strokeColor=#b85450;" vertex="1" parent="1">
+          <mxGeometry x="140" y="420" width="40" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- External Systems -->
+        <mxCell id="ext-sys-1" value="External System A&#xa;&#xa;[e.g., Payment Gateway]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="900" y="200" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="ext-sys-2" value="External System B&#xa;&#xa;[e.g., Email Service]" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;strokeColor=#d6b656;fontSize=11;align=center;" vertex="1" parent="1">
+          <mxGeometry x="900" y="420" width="160" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Cross-Cutting Concerns -->
+        <mxCell id="observability" value="Observability&#xa;• Metrics&#xa;• Logs&#xa;• Tracing" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;verticalAlign=top;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="40" y="600" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="security" value="Security&#xa;• Authentication&#xa;• Authorization&#xa;• Encryption" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;verticalAlign=top;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="210" y="600" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="resilience" value="Resilience&#xa;• Circuit Breaker&#xa;• Retry Logic&#xa;• Failover" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;align=left;verticalAlign=top;spacingLeft=5;" vertex="1" parent="1">
+          <mxGeometry x="380" y="600" width="140" height="80" as="geometry" />
+        </mxCell>
+        
+        <!-- Connections (examples) -->
+        <mxCell id="conn-1" value="Uses" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;" edge="1" parent="1" source="user-1" target="system-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn-2" value="Manages" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.3;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" edge="1" parent="1" source="admin-1" target="system-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn-3" value="API Calls" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="system-1" target="ext-sys-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="conn-4" value="Events" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.75;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" edge="1" parent="1" source="system-1" target="ext-sys-2">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
       </root>
     </mxGraphModel>
   </diagram>
